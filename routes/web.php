@@ -1,19 +1,25 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Models\Product;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Str;
+use App\Http\Controllers\Auth\{
+    RegisteredUserController,
+    AuthenticatedSessionController,
+    PasswordResetLinkController,
+    NewPasswordController,
+    EmailVerificationPromptController,
+    VerifyEmailController,
+    EmailVerificationNotificationController,
+    ConfirmablePasswordController,
+    PasswordController
+};
 
-// Página inicial
+//
+// 🌐 Public homepage
+//
 Route::get('/', function () {
     return view('home', [
         'sunglasses' => Product::where('category', 'Sunglasses')->take(3)->get(),
@@ -23,19 +29,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-// Dashboard (após login)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-// Rotas protegidas para perfil
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-// 🔐 Autenticação (registro, login, logout, etc.)
+//
+// 🔐 Authentication (register, login, logout)
+//
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -47,3 +43,72 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
+
+//
+// 🛍️ Collection overview page (boxes with images)
+//
+Route::get('/collection', function () {
+    $categories = [
+        'sunglasses' => 'Sunglasses',
+        'watches' => 'Watches',
+        'bags' => 'Bags',
+        'perfumes' => 'Fragrances',
+    ];
+
+    $images = [];
+
+    foreach ($categories as $slug => $label) {
+        $image = DB::table('product_images')
+            ->join('products', 'product_images.product_id', '=', 'products.id')
+            ->where('products.category', $label)
+            ->where('product_images.is_primary', true)
+            ->value('product_images.url');
+
+        $images[$slug] = [
+            'label' => $label,
+            'image' => $image,
+        ];
+    }
+
+    return view('collection', ['images' => $images]);
+})->name('collection');
+
+//
+// 📂 Collection category pages (paginated by 6)
+//
+Route::get('/collection/{category}', function ($category) {
+    $categories = [
+        'sunglasses' => 'Sunglasses',
+        'watches' => 'Watches',
+        'bags' => 'Bags',
+        'perfumes' => 'Fragrances',
+    ];
+
+    if (!array_key_exists($category, $categories)) {
+        abort(404);
+    }
+
+    $label = $categories[$category];
+
+    $products = Product::where('category', $label)
+        ->paginate(6);
+
+    return view('collection-category', [
+        'products' => $products,
+        'category' => $category,
+        'label' => $label,
+    ]);
+})->name('collection.category');
+
+//
+// 👤 Dashboard & user profile (authenticated only)
+//
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
