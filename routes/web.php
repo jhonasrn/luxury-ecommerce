@@ -45,7 +45,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 //
-// 🛍️ Collection overview page (boxes with images)
+// Collection overview page (boxes with images)
 //
 Route::get('/collection', function () {
     $categories = [
@@ -74,7 +74,7 @@ Route::get('/collection', function () {
 })->name('collection');
 
 //
-// 📂 Collection category pages (paginated by 6)
+// Collection category pages (paginated by 6)
 //
 Route::get('/collection/{category}', function ($category) {
     $categories = [
@@ -101,7 +101,7 @@ Route::get('/collection/{category}', function ($category) {
 })->name('collection.category');
 
 //
-// 👤 Dashboard & user profile (authenticated only)
+// Dashboard & user profile (authenticated only)
 //
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
@@ -112,3 +112,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+//
+// Product details (public)
+//
+use App\Http\Controllers\ProductController;
+
+Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
+
