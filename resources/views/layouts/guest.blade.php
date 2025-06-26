@@ -19,7 +19,7 @@
             <!-- Branding -->
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-bold text-gray-800 tracking-wide">LuxuryStore</h1>
-                <p class="text-sm text-gray-500 mt-1">Welcome — make your access</p>
+                <p class="text-sm text-gray-500 mt-1">Welcome — sign in to continue</p>
             </div>
 
             <!-- Slot for auth views -->
