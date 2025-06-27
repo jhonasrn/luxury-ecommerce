@@ -3,22 +3,31 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\Product;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Str;
-use App\Http\Controllers\Auth\{
-    RegisteredUserController,
-    AuthenticatedSessionController,
-    PasswordResetLinkController,
-    NewPasswordController,
-    EmailVerificationPromptController,
-    VerifyEmailController,
-    EmailVerificationNotificationController,
-    ConfirmablePasswordController,
-    PasswordController
+use App\Models\Order;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+use App\Http\Controllers\{
+    Auth\RegisteredUserController,
+    Auth\AuthenticatedSessionController,
+    Auth\PasswordResetLinkController,
+    Auth\NewPasswordController,
+    Auth\EmailVerificationPromptController,
+    Auth\VerifyEmailController,
+    Auth\EmailVerificationNotificationController,
+    Auth\ConfirmablePasswordController,
+    Auth\PasswordController,
+    ProfileController,
+    ProductController,
+    BagController,
+    CheckoutController,
+    OrderController,
+    CollectionController
 };
 
 //
-// 🌐 Public homepage
+// Public homepage
 //
 Route::get('/', function () {
     return view('home', [
@@ -30,12 +39,11 @@ Route::get('/', function () {
 })->name('home');
 
 //
-// 🔐 Authentication (register, login, logout)
+// Authentication
 //
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store']);
-
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 });
@@ -45,7 +53,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 //
-// Collection overview page (boxes with images)
+// Collection
 //
 Route::get('/collection', function () {
     $categories = [
@@ -73,9 +81,6 @@ Route::get('/collection', function () {
     return view('collection', ['images' => $images]);
 })->name('collection');
 
-//
-// Collection category pages (paginated by 6)
-//
 Route::get('/collection/{category}', function ($category) {
     $categories = [
         'sunglasses' => 'Sunglasses',
@@ -89,9 +94,7 @@ Route::get('/collection/{category}', function ($category) {
     }
 
     $label = $categories[$category];
-
-    $products = Product::where('category', $label)
-        ->paginate(6);
+    $products = Product::where('category', $label)->paginate(6);
 
     return view('collection-category', [
         'products' => $products,
@@ -101,22 +104,44 @@ Route::get('/collection/{category}', function ($category) {
 })->name('collection.category');
 
 //
-// Dashboard & user profile (authenticated only)
+// Produto e Sacola
 //
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
+Route::get('/bag', [BagController::class, 'index'])->name('bag.index');
+Route::post('/bag/add', [BagController::class, 'add'])->name('bag.add');
+Route::post('/bag/remove', [BagController::class, 'remove'])->name('bag.remove');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+//
+// Checkout
+//
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::put('/profile/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
-//
-// Product details (public)
-//
-use App\Http\Controllers\ProductController;
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/success', fn() => view('checkout.success'))->name('checkout.success');
 
-Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
+//
+// Perfil e Dashboard do usuário
+//
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/client/dashboard', [ProfileController::class, 'dashboard'])->name('client.dashboard');
+    
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    Route::get('/profile', function () { 
+        return view('profile', ['user' => auth()->user()]);
+    })->name('profile.edit');
+});
+
+Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::view('/about', 'about')->name('about');
+Route::view('/policies/shipping-returns', 'policies.shipping-returns')->name('policies.shipping');
+Route::view('/policies/privacy', 'policies.privacy')->name('policies.privacy');
+Route::view('/policies/terms', 'policies.terms')->name('policies.terms');
+Route::view('/help', 'help.index')->name('help');
 
