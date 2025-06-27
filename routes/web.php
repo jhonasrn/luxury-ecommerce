@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Product;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Str;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BagController;
+use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Auth\{
     RegisteredUserController,
     AuthenticatedSessionController,
@@ -18,7 +22,7 @@ use App\Http\Controllers\Auth\{
 };
 
 //
-// 🌐 Public homepage
+// Public homepage
 //
 Route::get('/', function () {
     return view('home', [
@@ -30,7 +34,7 @@ Route::get('/', function () {
 })->name('home');
 
 //
-// 🔐 Authentication (register, login, logout)
+// Authentication (register, login, logout)
 //
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -116,7 +120,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 //
 // Product details (public)
 //
-use App\Http\Controllers\ProductController;
 
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
+Route::get('/bag', [BagController::class, 'index'])->name('bag.index');
+Route::post('/bag/add', [BagController::class, 'add'])->name('bag.add');
+Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
+Route::post('/bag/remove', [BagController::class, 'remove'])->name('bag.remove');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+});
