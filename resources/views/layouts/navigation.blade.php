@@ -93,8 +93,11 @@
                     </div>
                 </div>
 
-                <a href="#" class="text-sm text-gray-700 hover:text-black mx-8">About</a>
-                <a href="#" class="text-sm text-gray-700 hover:text-black mx-8">Contact</a>
+                <a href="{{ url('/about') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900">
+                    About
+                </a>
+                <a href="{{ route('help') }}" class="text-sm text-gray-700 hover:text-black mx-8">Contact</a>
+
             </div>
 
             <!-- Search -->

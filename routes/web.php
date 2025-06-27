@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 use App\Http\Controllers\{
     Auth\RegisteredUserController,
     Auth\AuthenticatedSessionController,
@@ -131,4 +136,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('profile', ['user' => auth()->user()]);
     })->name('profile.edit');
 });
+
+Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::view('/about', 'about')->name('about');
+Route::view('/policies/shipping-returns', 'policies.shipping-returns')->name('policies.shipping');
+Route::view('/policies/privacy', 'policies.privacy')->name('policies.privacy');
+Route::view('/policies/terms', 'policies.terms')->name('policies.terms');
+Route::view('/help', 'help.index')->name('help');
 
