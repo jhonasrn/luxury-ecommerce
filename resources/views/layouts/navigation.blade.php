@@ -16,13 +16,21 @@
                     <a href="{{ route('register') }}" class="hover:underline">Sign Up</a>
                 </span>
             @endauth
-            <a href="#" class="flex items-center text-gray-600 hover:text-gray-800">
+            @php
+                $bagCount = collect(session('bag'))->sum();
+            @endphp
+
+            <a href="{{ route('bag.index') }}" class="flex items-center text-gray-600 hover:text-gray-800">
                 <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6 8m14.6-8L17 21H7" />
                 </svg>
                 <span class="text-sm">Bag</span>
-            </a>    
+                @if ($bagCount > 0)
+                    <span class="ml-1 text-xs text-indigo-600 font-semibold">({{ $bagCount }})</span>
+                @endif
+            </a>
+            </a>
         </div>
     </div>
 </div>
@@ -75,4 +83,3 @@
         </div>
     </div>
 </nav>
-

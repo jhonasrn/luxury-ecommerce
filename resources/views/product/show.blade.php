@@ -22,12 +22,15 @@
                 </div>
 
                 {{-- Quantity + Buttons --}}
-                <form method="POST" action="#">
+                <form method="POST" action="{{ route('bag.add') }}">
                     @csrf
+
+                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+
                     <div class="flex items-center gap-4 mb-4">
                         <label for="quantity" class="text-sm font-medium text-gray-700">Quantity</label>
                         <input type="number" name="quantity" id="quantity" value="1" min="1"
-                               class="w-20 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            class="w-20 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
 
                     <div class="flex gap-4">
