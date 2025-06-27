@@ -9,6 +9,7 @@ class Order extends Model
     protected $fillable = [
     'user_id',
     'total',
+    'status',
 ];
     protected $casts = [
         'total' => 'decimal:2',

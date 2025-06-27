@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 use App\Http\Controllers\{
     Auth\RegisteredUserController,
     Auth\AuthenticatedSessionController,
@@ -34,7 +39,7 @@ Route::get('/', function () {
 })->name('home');
 
 //
-// Authentication (register, login, logout)
+// Authentication
 //
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -48,7 +53,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 //
-// Collection overview + categories
+// Collection
 //
 Route::get('/collection', function () {
     $categories = [
@@ -99,7 +104,7 @@ Route::get('/collection/{category}', function ($category) {
 })->name('collection.category');
 
 //
-// Product + Bag
+// Produto e Sacola
 //
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/bag', [BagController::class, 'index'])->name('bag.index');
@@ -112,17 +117,31 @@ Route::post('/bag/remove', [BagController::class, 'remove'])->name('bag.remove')
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::put('/profile/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/checkout/success', fn() => view('checkout.success'))->name('checkout.success');
 
 //
-// User dashboard/profile
+// Perfil e Dashboard do usuário
 //
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/client/dashboard', [ProfileController::class, 'dashboard'])->name('client.dashboard');
+    
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    Route::get('/profile', function () { 
+        return view('profile', ['user' => auth()->user()]);
+    })->name('profile.edit');
 });
+
+Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::view('/about', 'about')->name('about');
+Route::view('/policies/shipping-returns', 'policies.shipping-returns')->name('policies.shipping');
+Route::view('/policies/privacy', 'policies.privacy')->name('policies.privacy');
+Route::view('/policies/terms', 'policies.terms')->name('policies.terms');
+Route::view('/help', 'help.index')->name('help');
+
