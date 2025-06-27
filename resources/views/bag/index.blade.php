@@ -2,54 +2,53 @@
 
 @section('content')
 <div class="bg-gray-50 py-12">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Your Bag</h1>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Sua Bag</h1>
 
-        @if ($products->count())
-            <div class="space-y-6 mb-10">
+        @if ($products->isEmpty())
+            <p class="text-gray-600">Sua bag está vazia.</p>
+        @else
+            <div class="bg-white rounded-lg shadow p-6 space-y-6">
                 @foreach ($products as $product)
-                    <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
-                        <div class="flex items-center gap-4">
-                            <img src="{{ $product->primaryImage ? $product->primaryImage->url : 'https://via.placeholder.com/80x80?text=No+Image' }}"
-                                 alt="{{ $product->name }}" class="w-20 h-20 rounded object-cover">
+                    @php
+                        $isPersisted = isset($product->product);
+                        $prod = $isPersisted ? $product->product : $product;
+                        $quantity = $isPersisted ? $product->quantity : ($bag[$product->id] ?? 1);
+                    @endphp
 
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <img src="{{ $prod->primaryImage->url ?? 'https://via.placeholder.com/80x80?text=No+Image' }}"
+                                 alt="{{ $prod->name }}" class="w-20 h-20 object-cover rounded-md">
                             <div>
-                                <h2 class="font-semibold text-gray-900">{{ $product->name }}</h2>
-                                <p class="text-sm text-gray-500">Qty: {{ $bag[$product->id] }}</p>
+                                <h2 class="text-lg font-semibold text-gray-900">{{ $prod->name }}</h2>
+                                <p class="text-sm text-gray-500">Qtd: {{ $quantity }}</p>
                             </div>
                         </div>
 
-                        <div class="text-right space-y-2">
-                            <p class="text-gray-600 text-sm">Unit: ${{ number_format($product->price, 2) }}</p>
-                            <p class="text-indigo-600 font-semibold">
-                                Subtotal: ${{ number_format($product->price * $bag[$product->id], 2) }}
-                            </p>
+                        <div class="text-right">
+                            <p class="text-md text-gray-700 font-semibold">${{ number_format($prod->price * $quantity, 2) }}</p>
 
-                            <form method="POST" action="{{ route('bag.remove') }}">
+                            <form action="{{ route('bag.remove') }}" method="POST" class="mt-2">
                                 @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <button type="submit" class="text-rose-600 text-sm hover:underline">
-                                    Remover
-                                </button>
+                                <input type="hidden" name="product_id" value="{{ $prod->id }}">
+                                <button type="submit" class="text-sm text-red-600 hover:underline">Remover</button>
                             </form>
                         </div>
                     </div>
                 @endforeach
-            </div>
 
-            <div class="flex justify-between items-center border-t pt-6">
-                <h3 class="text-xl font-semibold text-gray-800">Total</h3>
-                <p class="text-2xl font-bold text-indigo-600">${{ number_format($total, 2) }}</p>
-            </div>
+                <div class="flex justify-between border-t pt-4 text-lg font-bold text-gray-800">
+                    <span>Total:</span>
+                    <span>${{ number_format($total, 2) }}</span>
+                </div>
 
-            <div class="mt-8 text-right">
-            <a href="{{ route('checkout') }}"
-            class="bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700 transition">
-            Proceed to Checkout
-            </a>
+                <div class="text-right">
+                    <a href="{{ route('checkout.index') }}" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition">
+                        Finalizar Pedido
+                    </a>
+                </div>
             </div>
-        @else
-            <p class="text-gray-500">Your bag is empty. Go find something you love 💙</p>
         @endif
     </div>
 </div>

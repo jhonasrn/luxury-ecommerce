@@ -4,15 +4,30 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ShoppingBag;
 
 class BagController extends Controller
 {
     public function index()
     {
+        if (auth()->check()) {
+            $items = ShoppingBag::with('product')
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $total = $items->sum(function ($item) {
+                return $item->product->price * $item->quantity;
+            });
+
+            return view('bag.index', [
+                'products' => $items,
+                'total' => $total,
+                'bag' => [] // usado na view para compatibilidade
+            ]);
+        }
+
         $bag = session()->get('bag', []);
-
         $products = Product::whereIn('id', array_keys($bag))->get();
-
         $total = $products->sum(function ($product) use ($bag) {
             return $product->price * $bag[$product->id];
         });
@@ -25,23 +40,41 @@ class BagController extends Controller
         $productId = $request->input('product_id');
         $quantity = max((int) $request->input('quantity', 1), 1);
 
-        $bag = session()->get('bag', []);
-        $bag[$productId] = ($bag[$productId] ?? 0) + $quantity;
+        if (auth()->check()) {
+            $bagItem = ShoppingBag::firstOrNew([
+                'user_id' => auth()->id(),
+                'product_id' => $productId,
+            ]);
 
-        session()->put('bag', $bag);
+            $bagItem->quantity += $quantity; // ⚠️ sempre acumula!
+            $bagItem->save();
+        } else {
+            $bag = session()->get('bag', []);
+            $bag[$productId] = ($bag[$productId] ?? 0) + $quantity; // ⚠️ acumulando
+            session()->put('bag', $bag);
+        }
 
-        return redirect()->route('bag.index')->with('success', 'Product added to bag!');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Produto adicionado à bag']);
+        }
+
+        return redirect()->route('bag.index')->with('success', 'Produto adicionado à bag!');
     }
+
     public function remove(Request $request)
     {
         $productId = $request->input('product_id');
 
-        $bag = session()->get('bag', []);
-        unset($bag[$productId]);
-
-        session()->put('bag', $bag);
+        if (auth()->check()) {
+            ShoppingBag::where('user_id', auth()->id())
+                ->where('product_id', $productId)
+                ->delete();
+        } else {
+            $bag = session()->get('bag', []);
+            unset($bag[$productId]);
+            session()->put('bag', $bag);
+        }
 
         return redirect()->route('bag.index')->with('success', 'Produto removido da bag.');
     }
-
 }
