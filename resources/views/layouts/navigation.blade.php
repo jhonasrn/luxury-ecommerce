@@ -1,3 +1,11 @@
+@php
+    use App\Models\ShoppingBag;
+
+    $bagCount = auth()->check()
+        ? ShoppingBag::where('user_id', auth()->id())->sum('quantity')
+        : collect(session('bag'))->sum();
+@endphp
+
 <!-- Top Bar: Login / Sign Up / Bag -->
 <div class="bg-gray-100 text-gray-600 text-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center">
@@ -16,20 +24,16 @@
                     <a href="{{ route('register') }}" class="hover:underline">Sign Up</a>
                 </span>
             @endauth
-            @php
-                $bagCount = collect(session('bag'))->sum();
-            @endphp
 
-            <a href="{{ route('bag.index') }}" class="flex items-center text-gray-600 hover:text-gray-800">
+            <a href="{{ route('bag.index') }}" class="flex items-center text-gray-600 hover:text-gray-800 relative">
                 <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6 8m14.6-8L17 21H7" />
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6 8m14.6-8L17 21H7" />
                 </svg>
                 <span class="text-sm">Bag</span>
                 @if ($bagCount > 0)
                     <span class="ml-1 text-xs text-indigo-600 font-semibold">({{ $bagCount }})</span>
                 @endif
-            </a>
             </a>
         </div>
     </div>
@@ -54,21 +58,11 @@
                             <path d="M5.5 7l4.5 4 4.5-4" stroke="currentColor" stroke-width="1.5" fill="none" />
                         </svg>
                     </a>
-
-                    <!-- Submenu encostado -->
                     <div class="absolute left-0 top-full bg-white shadow-md rounded-md opacity-0 group-hover:opacity-100 invisible group-hover:visible transition duration-200 ease-in-out w-48 z-50">
-                        <a href="{{ route('collection.category', 'sunglasses') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Sunglasses
-                        </a>
-                        <a href="{{ route('collection.category', 'watches') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Watches
-                        </a>
-                        <a href="{{ route('collection.category', 'bags') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Bags
-                        </a>
-                        <a href="{{ route('collection.category', 'perfumes') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Perfumes
-                        </a>
+                        <a href="{{ route('collection.category', 'sunglasses') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sunglasses</a>
+                        <a href="{{ route('collection.category', 'watches') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Watches</a>
+                        <a href="{{ route('collection.category', 'bags') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bags</a>
+                        <a href="{{ route('collection.category', 'perfumes') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Perfumes</a>
                     </div>
                 </div>
 
