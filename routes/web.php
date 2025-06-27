@@ -121,8 +121,9 @@ Route::get('/checkout/success', fn() => view('checkout.success'))->name('checkou
 // User dashboard/profile
 //
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+    Route::get('/client/dashboard', [ProfileController::class, 'dashboard'])->name('client.dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
