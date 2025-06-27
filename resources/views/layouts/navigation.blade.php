@@ -29,7 +29,7 @@
 
                     <div class="absolute right-0 z-50 mt-0 w-44 bg-white border border-gray-200 rounded shadow-md opacity-0 group-hover:opacity-100 invisible group-hover:visible transition duration-200">
                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Profile
+                            Perfil
                         </a>
                         <a href="{{ route('client.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             My Orders

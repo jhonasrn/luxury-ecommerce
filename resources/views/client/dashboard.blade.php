@@ -34,17 +34,17 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             @foreach ($suggestedProducts as $product)
-                <div class="bg-white rounded-lg shadow p-4">
+                <a href="{{ route('product.show', $product->slug) }}"
+                class="block bg-white rounded-lg shadow p-4 hover:shadow-md transition">
                     <img src="{{ $product->primaryImage->url ?? 'https://via.placeholder.com/300x200?text=No+Image' }}"
-                         alt="{{ $product->name }}"
-                         class="w-full h-40 object-cover rounded mb-4">
+                        alt="{{ $product->name }}"
+                        class="w-full h-40 object-cover rounded mb-4">
                     <h3 class="text-sm font-semibold text-gray-900">{{ $product->name }}</h3>
-                    <p class="text-sm text-gray-600 mb-2">${{ number_format($product->price, 2) }}</p>
-                    <a href="{{ route('product.show', $product->slug) }}"
-                       class="text-sm text-indigo-600 hover:underline">View</a>
-                </div>
+                    <p class="text-sm text-gray-600">${{ number_format($product->price, 2) }}</p>
+                </a>
             @endforeach
         </div>
     @endif
+
 </div>
 @endsection
