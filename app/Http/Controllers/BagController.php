@@ -46,19 +46,23 @@ class BagController extends Controller
                 'product_id' => $productId,
             ]);
 
-            $bagItem->quantity += $quantity; // ⚠️ sempre acumula!
+            $bagItem->quantity += $quantity;
             $bagItem->save();
         } else {
             $bag = session()->get('bag', []);
-            $bag[$productId] = ($bag[$productId] ?? 0) + $quantity; // ⚠️ acumulando
+            $bag[$productId] = ($bag[$productId] ?? 0) + $quantity;
             session()->put('bag', $bag);
         }
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Produto adicionado à bag']);
+            return response()->json(['message' => 'Product added to bag']);
         }
 
-        return redirect()->route('bag.index')->with('success', 'Produto adicionado à bag!');
+        if ($request->has('redirect_to_bag')) {
+            return redirect()->route('bag.index')->with('success', 'Product added to your bag!');
+        }
+
+        return back()->with('success', 'Product added to your bag!');
     }
 
     public function remove(Request $request)
@@ -75,6 +79,6 @@ class BagController extends Controller
             session()->put('bag', $bag);
         }
 
-        return redirect()->route('bag.index')->with('success', 'Produto removido da bag.');
+        return redirect()->route('bag.index')->with('success', 'Product removed from your bag.');
     }
 }
