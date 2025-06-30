@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\{
     Auth\RegisteredUserController,
     Auth\AuthenticatedSessionController,
@@ -28,7 +29,8 @@ Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::view('/', 'admin.dashboard')->name('dashboard');
+        // Admin dashboard
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         // Products
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
@@ -44,7 +46,7 @@ Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
         // Reports
         Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     });
-    
+
 // ==== USER AUTHENTICATION ====
 
 Route::middleware('guest')->group(function () {
