@@ -53,4 +53,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Order::class);
     }
+
+    public function shippingAddresses()
+    {
+        return $this->hasMany(ShippingAddress::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
 }

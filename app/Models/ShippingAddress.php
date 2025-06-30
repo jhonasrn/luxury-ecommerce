@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ShippingAddress extends Model
 {
     protected $fillable = [
+        'user_id',
         'order_id',
         'full_name',
         'phone',
@@ -15,4 +16,14 @@ class ShippingAddress extends Model
         'state',
         'zip_code',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }
