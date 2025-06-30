@@ -9,7 +9,7 @@ class OrderController extends Controller
 {
     public function show(Order $order)
     {
-        // Garante que o usuário só acesse suas próprias orders
+
         if ($order->user_id !== auth()->id()) {
             abort(403);
         }
