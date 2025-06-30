@@ -17,13 +17,13 @@ use App\Models\Product;
 
 // ==== ADMIN AREA ====
 
-// Admin login routes (públicas para visitantes)
+// Admin login routes (public for guests)
 Route::middleware('guest')->prefix('admin')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 });
 
-// Admin dashboard e recursos (protegido por autenticação e verificação de admin)
+// Admin dashboard and resources (protected by auth and admin check)
 Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
     ->prefix('admin')
     ->name('admin.')
@@ -35,6 +35,8 @@ Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
 
         // Orders
         Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
+        Route::post('orders/{order}/advance-status', [\App\Http\Controllers\Admin\OrderController::class, 'advanceStatus'])
+            ->name('orders.advanceStatus');
 
         // Users
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
@@ -42,7 +44,7 @@ Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
         // Reports
         Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     });
-
+    
 // ==== USER AUTHENTICATION ====
 
 Route::middleware('guest')->group(function () {
@@ -124,6 +126,7 @@ Route::get('/checkout/success', fn () => view('checkout.success'))->name('checko
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
 // ==== USER PROFILE ====
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/client/dashboard', [ProfileController::class, 'dashboard'])->name('client.dashboard');
 
