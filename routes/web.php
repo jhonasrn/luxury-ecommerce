@@ -23,9 +23,21 @@ Route::middleware('guest')->prefix('admin')->group(function () {
     Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 });
 
-// Admin dashboard (protected by authentication and admin check)
-Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->group(function () {
-    Route::view('/', 'admin.dashboard')->name('admin.dashboard');
+// Admin dashboard & resources (protected)
+Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::view('/', 'admin.dashboard')->name('dashboard');
+
+    // Products
+    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+
+    // Orders
+    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
+
+    // Users
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+
+    // Reports
+    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
 });
 
 // ==== USER AUTHENTICATION ====
