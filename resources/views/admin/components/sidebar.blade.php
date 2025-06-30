@@ -5,6 +5,6 @@
         <a href="{{ route('admin.products.index') }}" class="block py-2 px-4 rounded hover:bg-gray-100">Products</a>
         <a href="{{ route('admin.orders.index') }}" class="block py-2 px-4 rounded hover:bg-gray-100">Orders</a>
         <a href="{{ route('admin.users.index') }}" class="block py-2 px-4 rounded hover:bg-gray-100">Users</a>
-        <a href="{{ route('admin.reports.index') }}" class="block py-2 px-4 rounded hover:bg-gray-100">Reports</a>
+        <!-- <a href="{{ route('admin.reports.index') }}" class="block py-2 px-4 rounded hover:bg-gray-100">Reports</a> -->
     </nav>
 </aside>
