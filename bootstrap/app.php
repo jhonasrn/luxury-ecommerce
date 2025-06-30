@@ -11,7 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'admin.auth' => \App\Http\Middleware\Authenticate::class,
+            'is_admin'   => \App\Http\Middleware\IsAdmin::class,
+            'auth'       => \App\Http\Middleware\Authenticate::class,
+            'guest'      => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

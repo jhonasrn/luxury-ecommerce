@@ -2,45 +2,53 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
-use App\Models\Product;
-use App\Models\Order;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\{
     Auth\RegisteredUserController,
     Auth\AuthenticatedSessionController,
-    Auth\PasswordResetLinkController,
-    Auth\NewPasswordController,
-    Auth\EmailVerificationPromptController,
-    Auth\VerifyEmailController,
-    Auth\EmailVerificationNotificationController,
-    Auth\ConfirmablePasswordController,
     Auth\PasswordController,
     ProfileController,
     ProductController,
     BagController,
     CheckoutController,
     OrderController,
-    CollectionController
+    AdminAuthController
 };
+use App\Models\Product;
 
-//
-// Public homepage
-//
-Route::get('/', function () {
-    return view('home', [
-        'sunglasses' => Product::where('category', 'Sunglasses')->take(3)->get(),
-        'watches' => Product::where('category', 'Watches')->take(3)->get(),
-        'bags' => Product::where('category', 'Bags')->take(3)->get(),
-        'fragrances' => Product::where('category', 'Fragrances')->take(3)->get(),
-    ]);
-})->name('home');
+// ==== ADMIN AREA ====
 
-//
-// Authentication
-//
+// Admin login routes (public for guests)
+Route::middleware('guest')->prefix('admin')->group(function () {
+    Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
+});
+
+// Admin dashboard and resources (protected by auth and admin check)
+Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        // Admin dashboard
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Products
+        Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+
+        // Orders
+        Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
+        Route::post('orders/{order}/advance-status', [\App\Http\Controllers\Admin\OrderController::class, 'advanceStatus'])
+            ->name('orders.advanceStatus');
+
+        // Users
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+
+        // Reports
+        Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    });
+
+// ==== USER AUTHENTICATION ====
+
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -52,92 +60,84 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-//
-// Collection
-//
-Route::get('/collection', function () {
-    $categories = [
+// ==== HOMEPAGE ====
+
+Route::get('/', function () {
+    return view('home', [
+        'sunglasses' => Product::where('category', 'Sunglasses')->take(3)->get(),
+        'watches' => Product::where('category', 'Watches')->take(3)->get(),
+        'bags' => Product::where('category', 'Bags')->take(3)->get(),
+        'fragrances' => Product::where('category', 'Fragrances')->take(3)->get(),
+    ]);
+})->name('home');
+
+// ==== COLLECTIONS ====
+
+Route::get('/collection', fn () => view('collection', [
+    'images' => collect([
         'sunglasses' => 'Sunglasses',
         'watches' => 'Watches',
         'bags' => 'Bags',
         'perfumes' => 'Fragrances',
-    ];
-
-    $images = [];
-
-    foreach ($categories as $slug => $label) {
-        $image = DB::table('product_images')
-            ->join('products', 'product_images.product_id', '=', 'products.id')
-            ->where('products.category', $label)
-            ->where('product_images.is_primary', true)
-            ->value('product_images.url');
-
-        $images[$slug] = [
+    ])->mapWithKeys(fn ($label, $slug) => [
+        $slug => [
             'label' => $label,
-            'image' => $image,
-        ];
-    }
-
-    return view('collection', ['images' => $images]);
-})->name('collection');
+            'image' => DB::table('product_images')
+                ->join('products', 'product_images.product_id', '=', 'products.id')
+                ->where('products.category', $label)
+                ->where('product_images.is_primary', true)
+                ->value('product_images.url'),
+        ],
+    ]),
+]))->name('collection');
 
 Route::get('/collection/{category}', function ($category) {
-    $categories = [
+    $map = [
         'sunglasses' => 'Sunglasses',
         'watches' => 'Watches',
         'bags' => 'Bags',
         'perfumes' => 'Fragrances',
     ];
 
-    if (!array_key_exists($category, $categories)) {
-        abort(404);
-    }
-
-    $label = $categories[$category];
-    $products = Product::where('category', $label)->paginate(6);
+    abort_if(!array_key_exists($category, $map), 404);
 
     return view('collection-category', [
-        'products' => $products,
+        'products' => Product::where('category', $map[$category])->paginate(6),
         'category' => $category,
-        'label' => $label,
+        'label' => $map[$category],
     ]);
 })->name('collection.category');
 
-//
-// Produto e Sacola
-//
+// ==== PRODUCT & SHOPPING BAG ====
+
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/bag', [BagController::class, 'index'])->name('bag.index');
 Route::post('/bag/add', [BagController::class, 'add'])->name('bag.add');
 Route::post('/bag/remove', [BagController::class, 'remove'])->name('bag.remove');
 
-//
-// Checkout
-//
-Route::middleware(['auth'])->group(function () {
+// ==== CHECKOUT ====
+
+Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::put('/profile/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-Route::get('/checkout/success', fn() => view('checkout.success'))->name('checkout.success');
+Route::get('/checkout/success', fn () => view('checkout.success'))->name('checkout.success');
+Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
-//
-// Perfil e Dashboard do usuário
-//
+// ==== USER PROFILE ====
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/client/dashboard', [ProfileController::class, 'dashboard'])->name('client.dashboard');
-    
+
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    Route::get('/profile', function () { 
-        return view('profile', ['user' => auth()->user()]);
-    })->name('profile.edit');
+    Route::get('/profile', fn () => view('profile', ['user' => auth()->user()]))->name('profile.edit');
 });
 
-Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+// ==== STATIC PAGES ====
 
 Route::view('/about', 'about')->name('about');
 Route::view('/policies/shipping-returns', 'policies.shipping-returns')->name('policies.shipping');
