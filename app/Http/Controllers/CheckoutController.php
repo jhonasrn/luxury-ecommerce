@@ -145,7 +145,7 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            return redirect()->route('checkout.index')->with('success', 'Your order was placed successfully!');
+            return redirect()->route('checkout.success')->with('success', 'Your order was placed successfully!');
         } catch (\Throwable $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Error processing order: ' . $e->getMessage()]);
