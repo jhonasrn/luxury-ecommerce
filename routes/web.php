@@ -17,28 +17,31 @@ use App\Models\Product;
 
 // ==== ADMIN AREA ====
 
-// Admin login routes (only accessible by guests)
+// Admin login routes (públicas para visitantes)
 Route::middleware('guest')->prefix('admin')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 });
 
-// Admin dashboard & resources (protected)
-Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
-    Route::view('/', 'admin.dashboard')->name('dashboard');
+// Admin dashboard e recursos (protegido por autenticação e verificação de admin)
+Route::middleware(['admin.auth', \App\Http\Middleware\IsAdmin::class])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::view('/', 'admin.dashboard')->name('dashboard');
 
-    // Products
-    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+        // Products
+        Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
 
-    // Orders
-    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
+        // Orders
+        Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
 
-    // Users
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+        // Users
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 
-    // Reports
-    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
-});
+        // Reports
+        Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    });
 
 // ==== USER AUTHENTICATION ====
 
@@ -123,7 +126,7 @@ Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.sh
 // ==== USER PROFILE ====
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/client/dashboard', [ProfileController::class, 'dashboard'])->name('client.dashboard');
-    
+
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/profile', fn () => view('profile', ['user' => auth()->user()]))->name('profile.edit');

@@ -8,19 +8,18 @@
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
-    <div class="flex min-h-screen">
-        {{-- Sidebar --}}
-        @include('admin.components.sidebar')
+    {{-- Sidebar fixo --}}
+    @include('admin.components.sidebar')
 
-        <div class="flex-1 flex flex-col">
-            {{-- Header --}}
-            @include('admin.components.header')
+    {{-- Conteúdo principal com padding compensando o menu lateral --}}
+    <div class="pl-64 min-h-screen flex flex-col">
+        {{-- Header (fixo ou não, dependendo do estilo) --}}
+        @include('admin.components.header')
 
-            {{-- Main content --}}
-            <main class="p-6">
-                @yield('content')
-            </main>
-        </div>
+        {{-- Main content --}}
+        <main class="p-6">
+            @yield('content')
+        </main>
     </div>
 
 </body>
